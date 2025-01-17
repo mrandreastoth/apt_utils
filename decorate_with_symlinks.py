@@ -1,3 +1,31 @@
+# ------------------------------------------------------------
+# Script: decorate_with_symlinks.py
+# Author: Andreas Toth
+# Email: andreas.toth@xtra.co.nz
+# Version: 1.0.0
+# Date: 2025-01-17
+#
+# Description:
+# This script replicates the hierarchy of files from a source directory as
+# symlinks in a destination directory, preserving the original directory
+# structure. It can optionally replace occurrences of a specified string with
+# another specified string in constructing the destination path from the
+# source path allowing for transformations such as ../git/info/exclude to the
+# symlinked file ./git/info/exclude, for example.
+#
+# The script supports both the creation of absolute and relative symlinks and
+# handles cases where files already exist at the destination with customisable
+# options. 
+#
+# Empty directories are not replicated. Existing files and directories in 
+# the destination that are not part of the source set are left untouched.
+#
+# Usage:
+# python decorate_with_symlinks.py <source_root> <destination_root> 
+#        [search_string] [replace_string] [--relative] [--on-exists=<value>]
+#
+# ------------------------------------------------------------
+
 import os
 import sys
 
