@@ -99,22 +99,8 @@ def handle_existing_file_behavior(action, target_file, src, dest):
             return False
     return True
 
-def main():
-    if len(sys.argv) < 3:
-        usage()
-
-    source_root = sys.argv[1]
-    dest_root = sys.argv[2]
-    search_string = sys.argv[3] if len(sys.argv) > 3 else ''
-    replace_string = sys.argv[4] if len(sys.argv) > 4 else ''
-    relative_symlink = '--relative' in sys.argv
-    on_exists = 'fail'  # Default behavior
-
-    # Check for --on-exists argument
-    for arg in sys.argv:
-        if arg.startswith('--on-exists='):
-            on_exists = get_on_exists_behavior(arg.split('=')[1])
-
+# Main function for the symlink decorating logic
+def decorate_symlinks(source_root, dest_root, search_string='', replace_string='', relative_symlink=False, on_exists='fail'):
     # Ensure source and destination roots exist
     if not os.path.isdir(source_root):
         print("Source root does not exist. Exiting.")
@@ -149,6 +135,24 @@ def main():
             create_symlink(file_path, target_file, relative_symlink)
 
     print("Decorating process complete!")
+
+def main():
+    if len(sys.argv) < 3:
+        usage()
+
+    source_root = sys.argv[1]
+    dest_root = sys.argv[2]
+    search_string = sys.argv[3] if len(sys.argv) > 3 else ''
+    replace_string = sys.argv[4] if len(sys.argv) > 4 else ''
+    relative_symlink = '--relative' in sys.argv
+    on_exists = 'fail'  # Default behavior
+
+    # Check for --on-exists argument
+    for arg in sys.argv:
+        if arg.startswith('--on-exists='):
+            on_exists = get_on_exists_behavior(arg.split('=')[1])
+
+    decorate_symlinks(source_root, dest_root, search_string, replace_string, relative_symlink, on_exists)
 
 if __name__ == "__main__":
     main()
