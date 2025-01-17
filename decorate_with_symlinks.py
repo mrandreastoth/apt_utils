@@ -21,21 +21,28 @@ def usage():
     print("  python decorate_with_symlinks.py /path/to/X /path/to/Y ..git .git --relative --on-exists=ask")
     sys.exit(1)
 
+def convert_path_to_relative(src, dest_root):
+    """ Convert the source path to a relative path from the destination root. """
+    return os.path.relpath(src, dest_root)
+
+def convert_path_to_absolute(path):
+    """ Convert the given path to an absolute path. """
+    return os.path.abspath(path)
+
 def create_symlink(src, dest, relative=False):
-    """ Create a symlink for files, with support for relative symlinks. """
+    """ Create a symlink for files or directories with support for relative and absolute symlinks. """
     try:
         # Remove the existing file (whether it's a regular file or symlink)
         if os.path.exists(dest) or os.path.islink(dest):
             os.remove(dest)
             print(f"Removed existing file: {dest}")
-        
+
+        # If relative, convert the source path to relative
         if relative:
-            # Make the symlink relative to the destination
-            src_rel = os.path.relpath(src, os.path.dirname(dest))
-            os.symlink(src_rel, dest)
-        else:
-            os.symlink(src, dest)
-        
+            src = os.path.relpath(src, os.path.dirname(dest))
+
+        os.symlink(src, dest)  # Creates symlink for both files and directories
+
         print(f"Symlink created: {src} -> {dest}")
     except FileExistsError:
         print(f"Error: Symlink already exists: {dest}")
@@ -108,6 +115,21 @@ def decorate_symlinks(source_root, dest_root, search_string='', replace_string='
     if not os.path.isdir(dest_root):
         print("Destination root does not exist. Exiting.")
         sys.exit(1)
+
+    # Convert both source and destination paths to absolute first
+    source_root = convert_path_to_absolute(source_root)
+    dest_root = convert_path_to_absolute(dest_root)
+
+    # If --relative is passed, convert both paths to relative paths based on current working directory
+    if relative_symlink:
+        source_root = convert_path_to_relative(source_root, os.getcwd())
+        dest_root = convert_path_to_relative(dest_root, os.getcwd())
+        print(f"Using relative paths for source and destination.")
+    else:
+        print(f"Using absolute paths for source and destination.")
+
+    print(f"Using source root: {source_root}")
+    print(f"Using destination root: {dest_root}")
 
     # Walk through the files in the source root
     for root, dirs, files in os.walk(source_root):
