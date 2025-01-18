@@ -3,7 +3,7 @@
 # Script: decorate_with_symlinks.py
 # Author: Andreas Toth
 # Email: andreas.toth@xtra.co.nz
-# Version: 2.0.0
+# Version: 2.0.1
 # Date: 2025-01-18
 #
 # Description:
@@ -124,29 +124,32 @@ def replace_in_path(path, search, replace, is_destination=False):
 
     return path
 
-def validate_mode_value(mode_value, error_text_override=""):
+def validate_mode_value(mode_value):
     """ Validates the mode value to ensure it's within the allowed options. """
     if mode_value not in VALID_MODE_VALUES:
-        if error_text_override != "":
-            print(error_text_override)
-        else:
-            print(f"Invalid value for mode: {mode_value}. Valid values are: {', '.join(VALID_MODE_VALUES)}.")
-
+        print(f"Invalid mode: {mode_value}. Valid values are: {', '.join(VALID_MODE_VALUES)}.")
         sys.exit(1)
 
     return mode_value
 
-def validate_on_exists_action_value(action_value):
-    """ Validates the on-exists' action value to ensure it's within the allowed options. """
-    action_value = validate_action_value(action_value, f"Invalid value for --on-exists: {action_value}. Valid values are: {', '.join(VALID_ACTION_VALUES)}.")
+def validate_action_value(action_value, error_text_override=""):
+    """ Validates the action value to ensure it's within the allowed options. """
+    if action_value not in VALID_ACTION_VALUES:
+        if error_text_override != "":
+            print(error_text_override)
+        else:
+            print(f"Invalid value for action: {action_value}. Valid values are: {', '.join(VALID_ACTION_VALUES)}.")
+
+        sys.exit(1)
+
+    if action_value not in VALID_ACTION_VALUES:
+        sys.exit(1)
 
     return action_value
 
-def validate_action_value(action_value):
-    """ Validates the action value to ensure it's within the allowed options. """
-    if action_value not in VALID_ACTION_VALUES:
-        print(f"Invalid action: {action_value}. Valid values are: {', '.join(VALID_ACTION_VALUES)}.")
-        sys.exit(1)
+def validate_on_exists_action_value(action_value):
+    """ Validates the on-exists' action value to ensure it's within the allowed options. """
+    action_value = validate_action_value(action_value, f"Invalid value for --on-exists: {action_value}. Valid values are: {', '.join(VALID_ACTION_VALUES)}.")
 
     return action_value
 
@@ -259,7 +262,7 @@ def decorate_symlinks(source_root, dest_root, search_string='', replace_string='
     print(f"Using destination root: {dest_root}")
 
     # Walk through the files in the source root
-    for root, files in os.walk(source_root):
+    for root, dirs, files in os.walk(source_root):
         for file in files:
             # Get the full source file path
             file_path = os.path.join(root, file)
@@ -280,7 +283,8 @@ def decorate_symlinks(source_root, dest_root, search_string='', replace_string='
                 action_result = handle_existing_file_behavior(mode, action, target_file)
 
                 if action_result == 'failed':
-                    break
+                    print("Operation failed! Decorating process incomplete!")
+                    return
 
                 if action_result == 'skipped':
                     continue
